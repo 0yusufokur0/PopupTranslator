@@ -27,8 +27,10 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
 
+        <service android:name="io.hamed.floatinglayout.service.FloatingService" />
 
 
     </application>

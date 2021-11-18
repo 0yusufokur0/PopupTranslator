@@ -56,8 +56,8 @@ class TranslateAPI(
             withContext(Dispatchers.Main) {
                 var temp = ""
                 if (resp == null) {
-                  /*  listener!!.onFailure("Network Error")*/
-                    listener!!.onSuccess("Network Error")
+                    listener!!.onFailure("Network Error")
+
                 } else {
                     try {
                         withContext(Dispatchers.IO) {
@@ -70,15 +70,10 @@ class TranslateAPI(
                         if (temp.length > 2) {
                             listener!!.onSuccess(temp)
                         } else {
-/*
                             listener!!.onFailure("Invalid Input String")
-*/                            listener!!.onSuccess("Invalid Input String")
-
                         }
                     } catch (e: JSONException) {
-/*
                         listener!!.onFailure(e.localizedMessage)
-*/                        listener!!.onSuccess(e.localizedMessage)
 
                         e.printStackTrace()
                     }
