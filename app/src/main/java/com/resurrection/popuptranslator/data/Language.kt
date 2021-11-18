@@ -1,4 +1,4 @@
-package com.resurrection.popuptranslator
+package com.resurrection.popuptranslator.data
 
 object Language {
     const val AUTO_DETECT = "auto"

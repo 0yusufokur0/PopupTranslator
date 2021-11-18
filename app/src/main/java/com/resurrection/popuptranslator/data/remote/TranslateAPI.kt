@@ -1,4 +1,4 @@
-package com.resurrection.popuptranslator
+package com.resurrection.popuptranslator.data.remote
 
 import kotlinx.coroutines.*
 import org.json.JSONArray
@@ -9,9 +9,6 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 
-/**
- * Created by hello on 16-Aug-18.
- */
 class TranslateAPI(
     private var langFrom: String?,
     private var langTo: String?,
@@ -31,16 +28,14 @@ class TranslateAPI(
         setupTranslate()
     }
 
-
     private fun setupTranslate() {
         CoroutineScope(Dispatchers.IO).launch {
             val request = async(Dispatchers.IO) {
                 listener?.let {
                     try {
-                        url =
-                            "https://translate.googleapis.com/translate_a/single?" + "client=gtx&" +
-                                    "sl=" + langFrom + "&tl=" + langTo + "&dt=t&q=" +
-                                    URLEncoder.encode(text, "UTF-8")
+                        url = "https://translate.googleapis.com/translate_a/single?" +
+                                "client=gtx&" + "sl=" + langFrom + "&tl=" + langTo + "&dt=t&q=" +
+                                URLEncoder.encode(text, "UTF-8")
 
                         val connection = URL(url).openConnection() as HttpURLConnection
                         connection.setRequestProperty("User-Agent", "Mozilla/5.0")
@@ -83,8 +78,5 @@ class TranslateAPI(
                 }
             }
         }
-
     }
-
-
 }
