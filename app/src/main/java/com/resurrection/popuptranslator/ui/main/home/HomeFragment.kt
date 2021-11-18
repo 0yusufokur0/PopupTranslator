@@ -23,7 +23,6 @@ class HomeFragment :BaseFragment<FragmentHomeBinding,HomeViewModel>
             val popup = PopupMenu(requireContext(), it)
             popup.menuInflater.inflate(R.menu.lang_menu, popup.menu)
             popup.setOnMenuItemClickListener { menuItem: MenuItem ->
-                // Respond to menu item click.
                 binding.langFrom.text = menuItem.title
                 langFrom = getModelFieldValue(Language,menuItem.title.toString()) as String
                 translate()
