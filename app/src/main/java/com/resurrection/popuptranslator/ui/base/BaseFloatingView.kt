@@ -1,4 +1,4 @@
-package com.resurrection.popuptranslator
+package com.resurrection.popuptranslator.ui.base
 
 import android.annotation.SuppressLint
 import android.app.Service
@@ -12,30 +12,26 @@ import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import com.resurrection.popuptranslator.ui.main.MainActivity
 
-abstract class Deneme<T : ViewDataBinding>(val layoutId: Int) : Service() {
+@SuppressLint("RtlHardcoded")
+abstract class BaseFloatingView<T : ViewDataBinding>(private val layoutId: Int) : Service() {
+
     private var initialX = 0
     private var initialY = 0
     private var initialTouchX = 0f
     private var initialTouchY = 0f
     private var mWindowManager: WindowManager? = null
-    var mFloatingView: View? = null
     private var params: WindowManager.LayoutParams? = null
+    lateinit var binding: T
 
-    var binding: T? = null
-
-    abstract fun init()
-
-
-    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate() {
         super.onCreate()
-        mFloatingView = LayoutInflater.from(this).inflate(layoutId, null)
-        mFloatingView?.let {
-            binding = DataBindingUtil.bind(mFloatingView!!)
-        }
+        binding = DataBindingUtil.bind(LayoutInflater.from(this).inflate(layoutId, null))!!
         val LAYOUT_FLAG: Int =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-            else WindowManager.LayoutParams.TYPE_PHONE
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+            else
+                WindowManager.LayoutParams.TYPE_PHONE
+
         params = WindowManager.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -43,24 +39,19 @@ abstract class Deneme<T : ViewDataBinding>(val layoutId: Int) : Service() {
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
         )
-        params?.let {
-            //Specify the view position
+        params?.let { //Specify the view position
             params!!.gravity =
                 Gravity.TOP or Gravity.LEFT //Initially view will be added to top-left corner
             params!!.x = 0
             params!!.y = 100
-            init()
         }
-
     }
 
-
     @SuppressLint("ClickableViewAccessibility")
-    open fun moveableTouchListener(openAppWhenClicked: Boolean): OnTouchListener? {
+    open fun moveableTouchListener(openAppWhenClicked: Boolean = false): OnTouchListener? {
         return OnTouchListener { v, event ->
             when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    //remember the initial position.
+                MotionEvent.ACTION_DOWN -> { //remember the initial position.
                     initialX = params!!.x
                     initialY = params!!.y
 
@@ -75,13 +66,12 @@ abstract class Deneme<T : ViewDataBinding>(val layoutId: Int) : Service() {
                     if (openAppWhenClicked) if (Xdiff < 10 && Ydiff < 10) openApp() //The check for Xdiff <10 && YDiff< 10 because sometime elements moves a little while clicking. //So that is click event.
                     return@OnTouchListener true
                 }
-                MotionEvent.ACTION_MOVE -> {
-                    //Calculate the X and Y coordinates of the view.
+                MotionEvent.ACTION_MOVE -> { //Calculate the X and Y coordinates of the view.
                     params!!.x = initialX + (event.rawX - initialTouchX).toInt()
                     params!!.y = initialY + (event.rawY - initialTouchY).toInt()
 
                     //Update the layout with new X & Y coordinate
-                    mWindowManager!!.updateViewLayout(mFloatingView, params)
+                    mWindowManager!!.updateViewLayout(binding.root, params)
                     return@OnTouchListener true
                 }
             }
@@ -89,19 +79,13 @@ abstract class Deneme<T : ViewDataBinding>(val layoutId: Int) : Service() {
         }
     }
 
-
-    open fun moveableTouchListener(): OnTouchListener? {
-        return moveableTouchListener(false)
+    open fun showView() {
+        mWindowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+        mWindowManager?.addView(binding.root, params)
     }
 
-    open fun addMyView() {
-        //Add the view to the window
-        if (mFloatingView != null) {
-            mWindowManager = getSystemService(WINDOW_SERVICE) as WindowManager
-            mWindowManager?.let {
-                mWindowManager!!.addView(mFloatingView, params)
-            }
-        }
+    open fun hideView() {
+        mWindowManager?.removeView(binding.root)
     }
 
     open fun openApp() {
@@ -113,9 +97,8 @@ abstract class Deneme<T : ViewDataBinding>(val layoutId: Int) : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        if (mFloatingView != null) mWindowManager!!.removeView(mFloatingView)
+        mWindowManager?.removeView(binding.root)
     }
-
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
