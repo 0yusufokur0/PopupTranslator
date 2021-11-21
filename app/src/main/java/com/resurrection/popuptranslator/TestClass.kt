@@ -6,7 +6,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import com.resurrection.popuptranslator.databinding.OverlayLayoutBinding
 
-class TestClass : FloatingViewService<OverlayLayoutBinding>(R.layout.overlay_layout) {
+class TestClass : Deneme<OverlayLayoutBinding>(R.layout.overlay_layout) {
 
 
     @SuppressLint("ClickableViewAccessibility")
@@ -14,18 +14,13 @@ class TestClass : FloatingViewService<OverlayLayoutBinding>(R.layout.overlay_lay
         super.onCreate()
         addMyView()
 
-        binding?.moveBtn?.setOnTouchListener(moveableTouchListener(true))
-        binding.closeBtn.setOnClickListener {
+        binding?.moveBtn?.setOnTouchListener(moveableTouchListener())
+        binding?.closeBtn?.setOnClickListener {
             stopSelf()
         }
     }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun init() {
-
-
-
     }
-
-
 }
