@@ -30,11 +30,8 @@
             </intent-filter>
 
         </activity>
-
-        <service android:name="io.hamed.floatinglayout.service.FloatingService" />
-        <service android:name=".FlyBitch" android:exported="true"/>
         <service
-            android:name=".FloatingViewService"
+            android:name=".TestClass"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="mediaProjection"

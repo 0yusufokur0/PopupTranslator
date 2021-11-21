@@ -15,39 +15,49 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
 import androidx.core.app.NotificationCompat;
+import androidx.databinding.DataBindingComponent;
+import androidx.databinding.DataBindingUtil;
+import androidx.databinding.ViewDataBinding;
 
 import com.resurrection.popuptranslator.ui.main.MainActivity;
 
-public class FloatingViewService extends Service {
+import org.xmlpull.v1.XmlPullParser;
 
+import java.util.concurrent.Callable;
+
+public abstract class FloatingViewService<T extends ViewDataBinding> extends Service {
+    private int initialX;
+    private int initialY;
+    private float initialTouchX;
+    private float initialTouchY;
     private WindowManager mWindowManager;
-    private View mFloatingView;
-
+    View mFloatingView;
     private WindowManager.LayoutParams params;
+    private int layoutId;
+    T binding;
 
-    public FloatingViewService() {
+
+    public FloatingViewService (int layoutId) {
+        this.layoutId = layoutId;
+
     }
 
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
+    abstract void init();
+
+
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public void onCreate() {
         super.onCreate();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            startMyOwnForeground();
-        else
-            startForeground(1, new Notification());
-        //Inflate the floating view layout we created
-        mFloatingView = LayoutInflater.from(this).inflate(R.layout.overlay_layout, null);
+        mFloatingView = LayoutInflater.from(this).inflate(layoutId,null);
+         binding = DataBindingUtil.bind(mFloatingView);
 
 
         int LAYOUT_FLAG;
@@ -74,22 +84,8 @@ public class FloatingViewService extends Service {
         params.x = 0;
         params.y = 100;
 
-        //Add the view to the window
-        mWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-        mWindowManager.addView(mFloatingView, params);
-
-
-        //Set the close button
-        ImageView closeButtonCollapsed = (ImageView) mFloatingView.findViewById(R.id.close_btn);
-        closeButtonCollapsed.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //close the service and remove the from from the window
-                stopSelf();
-            }
-        });
-
-        mFloatingView.findViewById(R.id.root_container).setOnTouchListener(new View.OnTouchListener() {
+/*
+        mFloatingView.findViewById(R.id.close_btn).setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 switch (event.getAction()) {
@@ -113,7 +109,7 @@ public class FloatingViewService extends Service {
                         if (Xdiff < 10 && Ydiff < 10) {
                             Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            intent.putExtra("fromwhere","ser");
+                            intent.putExtra("fromwhere", "ser");
                             startActivity(intent);
                         }
                         return true;
@@ -134,12 +130,77 @@ public class FloatingViewService extends Service {
             private int initialY;
             private float initialTouchX;
             private float initialTouchY;
-
-
-
         });
+*/
+
+  /*      mFloatingView.findViewById(R.id.collapse_view).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stopSelf();
+            }
+        });*/
+
+        init();
+
+
     }
 
+    public View.OnTouchListener moveableTouchListener(boolean openAppWhenClicked){
+        View.OnTouchListener onTouchListener = new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+
+                        //remember the initial position.
+                        initialX = params.x;
+                        initialY = params.y;
+
+                        //get the touch location
+                        initialTouchX = event.getRawX();
+                        initialTouchY = event.getRawY();
+                        return true;
+                    case MotionEvent.ACTION_UP:
+                        int Xdiff = (int) (event.getRawX() - initialTouchX);
+                        int Ydiff = (int) (event.getRawY() - initialTouchY);
+
+                        if (openAppWhenClicked){
+
+                            //The check for Xdiff <10 && YDiff< 10 because sometime elements moves a little while clicking.
+                            //So that is click event.
+                            if (Xdiff < 10 && Ydiff < 10) {
+                                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                intent.putExtra("fromwhere", "ser");
+                                startActivity(intent);
+                            }
+                        }
+                        return true;
+                    case MotionEvent.ACTION_MOVE:
+                        //Calculate the X and Y coordinates of the view.
+                        params.x = initialX + (int) (event.getRawX() - initialTouchX);
+                        params.y = initialY + (int) (event.getRawY() - initialTouchY);
+
+
+                        //Update the layout with new X & Y coordinate
+                        mWindowManager.updateViewLayout(mFloatingView, params);
+                        return true;
+                }
+                return false;
+            }
+
+
+        };
+        return onTouchListener;
+    }
+
+    public void addMyView() {
+        //Add the view to the window
+        if (mFloatingView != null) {
+            mWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+            mWindowManager.addView(mFloatingView, params);
+        }
+    }
 
     @Override
     public void onDestroy() {
@@ -147,27 +208,12 @@ public class FloatingViewService extends Service {
         if (mFloatingView != null) mWindowManager.removeView(mFloatingView);
     }
 
-    private void startMyOwnForeground() {
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-
-            String NOTIFICATION_CHANNEL_ID = "com.example.simpleapp";
-            String channelName = "My Background Service";
-            NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
-            chan.setLightColor(Color.BLUE);
-            chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
-            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            assert manager != null;
-            manager.createNotificationChannel(chan);
-
-            NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
-            Notification notification = notificationBuilder.setOngoing(true)
-                    .setContentTitle("App is running in background")
-                    .setPriority(NotificationManager.IMPORTANCE_MIN)
-                    .setCategory(Notification.CATEGORY_SERVICE)
-                    .build();
-            startForeground(2, notification);
-        }
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
     }
-
 }
+
+
+

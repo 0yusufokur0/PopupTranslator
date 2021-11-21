@@ -4,10 +4,14 @@ import android.content.Context
 import android.graphics.Color
 import android.os.Build
 import android.provider.Settings
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
+import androidx.databinding.DataBindingUtil
+import androidx.databinding.ViewDataBinding
 import com.google.android.material.snackbar.Snackbar
+import com.resurrection.popuptranslator.databinding.OverlayLayoutBinding
 import java.lang.Exception
 
 fun  getModelFieldValue(model:Any,fieldName:String):Any?{
@@ -64,4 +68,12 @@ private fun setupSnackBar(view: View, text: String? = "") {
         snackbar.show()
     }
 
+}
+
+fun <T>dataBinder(context: Context, layoutId: Int): T {
+    val vdb :T =  DataBindingUtil.bind(LayoutInflater.from(context).inflate(layoutId,null))!!
+
+
+
+    return vdb
 }

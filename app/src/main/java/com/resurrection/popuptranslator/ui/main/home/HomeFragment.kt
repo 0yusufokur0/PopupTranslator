@@ -25,18 +25,17 @@ import com.resurrection.popuptranslator.*
 
 
 class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>
-(R.layout.fragment_home, HomeViewModel::class.java) {
+    (R.layout.fragment_home, HomeViewModel::class.java) {
     private var langFrom = Language.AUTO_DETECT
     private var langTo = Language.TURKISH
-    private lateinit var simpleFloatingWindow: SimpleFloatingWindow
 
     @RequiresApi(Build.VERSION_CODES.P)
     override fun init(savedInstanceState: Bundle?) {
 
-            Intent(requireContext(),FloatingViewService::class.java).also {
-                requireContext().startService(it)
-            }
 
+        Intent(requireContext(), TestClass::class.java).also {
+            requireContext().startService(it)
+        }
 
         binding.result.setOnClickListener {
             translate()
@@ -74,35 +73,35 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>
         if (langTo == Language.AUTO_DETECT) langTo = Language.TURKISH
 
         TranslateAPI(
-                langFrom, langTo, "Hi",
-                object : TranslateAPI.TranslateListener {
-                    override fun onSuccess(translatedText: String?) {
-                        tryCatch { binding.result.text = translatedText.toString() }
-                    }
-                    override fun onFailure(ErrorText: String?) {
-                        tryCatch { binding.result.text = ErrorText.toString() }
-                    }
-                })
+            langFrom, langTo, "Hi",
+            object : TranslateAPI.TranslateListener {
+                override fun onSuccess(translatedText: String?) {
+                    tryCatch { binding.result.text = translatedText.toString() }
+                }
+
+                override fun onFailure(ErrorText: String?) {
+                    tryCatch { binding.result.text = ErrorText.toString() }
+                }
+            })
     }
 
 
-
-
-
-    fun test(){
+    fun test() {
         var floatingLayout: FloatingLayout? = null
         val floatingListener: FloatingListener = object : FloatingListener {
             override fun onCreateListener(view: View) {}
             override fun onCloseListener() {}
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(requireContext())){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(
+                requireContext()
+            )
+        ) {
             val intent = Intent(
                 Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                 Uri.parse("package:" + requireActivity().packageName)
             )
             startActivityForResult(intent, 25)
-        }
-        else{
+        } else {
             floatingLayout = FloatingLayout(requireContext(), R.layout.activity_home)
             floatingLayout!!.setFloatingListener(floatingListener)
             floatingLayout!!.create()
