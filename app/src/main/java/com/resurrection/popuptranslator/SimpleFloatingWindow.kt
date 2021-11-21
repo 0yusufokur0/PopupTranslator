@@ -1,4 +1,4 @@
-package com.aminography.floatingwindowapp
+package com.resurrection.popuptranslator
 
 import android.app.Activity
 import android.content.Context
@@ -6,27 +6,14 @@ import android.content.Context.WINDOW_SERVICE
 import android.graphics.PixelFormat
 import android.os.Build
 import android.view.*
-import android.widget.Button
 import androidx.annotation.RequiresApi
-import com.resurrection.popuptranslator.R
-import com.resurrection.popuptranslator.canDrawOverlays
-import com.resurrection.popuptranslator.databinding.LayoutFloatingWindowBinding
-import java.util.zip.Inflater
 import kotlin.math.abs
 
 @RequiresApi(Build.VERSION_CODES.P)
-class SimpleFloatingWindow constructor(private val context: Context, val activity :Activity) {
-
-
-    private var windowManager: WindowManager? = null
-        get() {
-            if (field == null) field = (context.getSystemService(WINDOW_SERVICE) as WindowManager)
-            return field
-        }
-
-    private var floatView: View =
-        LayoutInflater.from(context).inflate(R.layout.layout_floating_window, null)
-
+class SimpleFloatingWindow (private val context: Context) {
+    private var isDuplicateWindow = true
+    private var windowManager: WindowManager? = context.getSystemService(WINDOW_SERVICE) as WindowManager
+    private var floatView = LayoutInflater.from(context).inflate(R.layout.layout_floating_window, null)
     private lateinit var layoutParams: WindowManager.LayoutParams
 
     private var lastX: Int = 0
@@ -38,6 +25,8 @@ class SimpleFloatingWindow constructor(private val context: Context, val activit
     private var touchConsumedByMove = false
 
     private val onTouchListener = View.OnTouchListener { view, event ->
+
+
         val totalDeltaX = lastX - firstX
         val totalDeltaY = lastY - firstY
 
@@ -48,9 +37,7 @@ class SimpleFloatingWindow constructor(private val context: Context, val activit
                 firstX = lastX
                 firstY = lastY
             }
-            MotionEvent.ACTION_UP -> {
-                view.performClick()
-            }
+            MotionEvent.ACTION_UP ->  view.performClick()
             MotionEvent.ACTION_MOVE -> {
                 val deltaX = event.rawX.toInt() - lastX
                 val deltaY = event.rawY.toInt() - lastY
@@ -64,29 +51,18 @@ class SimpleFloatingWindow constructor(private val context: Context, val activit
                         windowManager?.apply {
                             updateViewLayout(floatView, layoutParams)
                         }
-                    } else {
-                        touchConsumedByMove = false
-                    }
-                } else {
-                    touchConsumedByMove = false
-                }
+                    } else touchConsumedByMove = false
+                } else touchConsumedByMove = false
             }
-            else -> {
-            }
+
         }
         touchConsumedByMove
     }
 
     init {
 
-        var closeImageButton = activity.findViewById<Button>(R.id.closeImageButton)
-        var textView = activity.findViewById<Button>(R.id.textView)
-/*
-        with(floatView) {
-            closeImageButton.setOnClickListener { dismiss() }
-            textView.text = "I'm a float view!"
-        }*/
         floatView.setOnTouchListener(onTouchListener)
+
 
         layoutParams = WindowManager.LayoutParams().apply {
             format = PixelFormat.TRANSLUCENT
@@ -102,11 +78,19 @@ class SimpleFloatingWindow constructor(private val context: Context, val activit
             width = WindowManager.LayoutParams.WRAP_CONTENT
             height = WindowManager.LayoutParams.WRAP_CONTENT
         }
+
+        show()
     }
 
     fun show() {
         if (context.canDrawOverlays) {
-            dismiss()
+         /*   dismiss()*/
+
+            tryCatch {
+                windowManager?.removeView(floatView)
+
+            }
+
             isShowing = true
             windowManager?.addView(floatView, layoutParams)
         }

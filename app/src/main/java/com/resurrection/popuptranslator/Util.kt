@@ -1,9 +1,13 @@
 package com.resurrection.popuptranslator
 
 import android.content.Context
+import android.graphics.Color
 import android.os.Build
 import android.provider.Settings
+import android.view.View
+import android.widget.TextView
 import android.widget.Toast
+import com.google.android.material.snackbar.Snackbar
 import java.lang.Exception
 
 fun  getModelFieldValue(model:Any,fieldName:String):Any?{
@@ -44,3 +48,20 @@ fun Context.showToast(message: CharSequence?) {
 
 val Context.canDrawOverlays: Boolean
     get() = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this)
+
+
+private fun setupSnackBar(view: View, text: String? = "") {
+    text?.let {
+        val snackbar = Snackbar.make(view, text,
+            Snackbar.LENGTH_LONG).setAction("Action", null)
+        snackbar.setActionTextColor(Color.BLUE)
+        val snackbarView = snackbar.view
+        snackbarView.setBackgroundColor(Color.LTGRAY)
+        val textView =
+            snackbarView.findViewById(com.google.android.material.R.id.snackbar_text) as TextView
+        textView.setTextColor(Color.BLUE)
+        textView.textSize = 28f
+        snackbar.show()
+    }
+
+}
