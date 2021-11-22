@@ -22,7 +22,7 @@ import android.provider.Settings
 
 import androidx.annotation.RequiresApi
 import com.resurrection.popuptranslator.*
-
+import com.resurrection.popuptranslator.ui.main.floatingview.FloatingView
 
 class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>
     (R.layout.fragment_home, HomeViewModel::class.java) {
@@ -32,11 +32,9 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>
     @RequiresApi(Build.VERSION_CODES.P)
     override fun init(savedInstanceState: Bundle?) {
 
+        requireContext().startService(Intent(requireContext(), FloatingView::class.java))
 
-        Intent(requireContext(), TestClass::class.java).also {
-            requireContext().startService(it)
-        }
-
+/*
         binding.result.setOnClickListener {
             translate()
 
@@ -82,7 +80,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>
                 override fun onFailure(ErrorText: String?) {
                     tryCatch { binding.result.text = ErrorText.toString() }
                 }
-            })
+            })*/
     }
 
 

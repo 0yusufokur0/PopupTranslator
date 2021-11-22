@@ -31,7 +31,7 @@
 
         </activity>
         <service
-            android:name=".TestClass"
+            android:name=".ui.main.floatingview.FloatingView"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="mediaProjection"

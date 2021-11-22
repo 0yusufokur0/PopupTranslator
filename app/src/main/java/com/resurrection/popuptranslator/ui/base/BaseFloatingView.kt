@@ -10,10 +10,17 @@ import android.view.*
 import android.view.View.OnTouchListener
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.ViewModelStoreOwner
 import com.resurrection.popuptranslator.ui.main.MainActivity
 
 @SuppressLint("RtlHardcoded")
-abstract class BaseFloatingView<T : ViewDataBinding>(private val layoutId: Int) : Service() {
+abstract class BaseFloatingView<T : ViewDataBinding,VM : ViewModel>
+    (private val layoutId: Int,
+     private val viewModelClass: Class<VM>
+     ) : Service() {
 
     private var initialX = 0
     private var initialY = 0
@@ -21,7 +28,13 @@ abstract class BaseFloatingView<T : ViewDataBinding>(private val layoutId: Int) 
     private var initialTouchY = 0f
     private var mWindowManager: WindowManager? = null
     private var params: WindowManager.LayoutParams? = null
+    val context = this
+
     lateinit var binding: T
+
+    protected val viewModel by lazy {
+        ViewModelProvider(ViewModelStoreOwner { ViewModelStore() }).get(viewModelClass)
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -36,7 +49,7 @@ abstract class BaseFloatingView<T : ViewDataBinding>(private val layoutId: Int) 
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT,
             LAYOUT_FLAG,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+            View.FOCUSABLE,
             PixelFormat.TRANSLUCENT
         )
         params?.let { //Specify the view position
